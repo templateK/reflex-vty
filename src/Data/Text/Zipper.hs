@@ -22,12 +22,13 @@ import Control.Monad.State (evalState, forM, get, put)
 
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Text.ICU.Char
+-- import Data.Text.ICU.Char
 import Data.Text.Internal (Text(..), text)
 import Data.Text.Internal.Fusion (stream)
 import Data.Text.Internal.Fusion.Types (Stream(..), Step(..))
 import Data.Text.Unsafe
 
+foreign import ccall unsafe "mk_wcwidth" wcwidth :: Char -> Int
 -- | A zipper of the logical text input contents (the "document"). The lines
 -- before the line containing the cursor are stored in reverse order.
 -- The cursor is logically between the "before" and "after" text.
@@ -333,10 +334,7 @@ dropWidth n = snd . splitAtWidth n
 -- take two columns and everything else takes a single column. See
 -- <https://www.unicode.org/reports/tr11/> for more information.
 charWidth :: Char -> Int
-charWidth c = case property EastAsianWidth c of
-  EAFull -> 2
-  EAWide -> 2
-  _ -> 1
+charWidth c = wcwidth c
 
 -- | For a given set of wrapped logical lines, computes a map
 -- from display line index to text offset in the original text.
